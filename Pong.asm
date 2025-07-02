@@ -6,11 +6,11 @@
 
 ############################################################################################################################
 # To start go to Tools -> Bitmap
-#   unit width      1
-#   unit height     1
-#   Display width   512
-#   Display height  512
-#   Base address    0x10010000 (static data)
+#   unit width:      1
+#   unit height:     1
+#   Display width:   512
+#   Display height:  512
+#   Base address:    0x10010000 (static data)
 # Then connect to MIPS
 # Next go to Tools -> Keyboard and Display MMIO Simulator
 # Then connect to MIPS
@@ -34,7 +34,7 @@
 .eqv BALL_SIZE, 	8
 
 # Speeds
-.eqv PADDLE_SPEED, 		10
+.eqv PADDLE_SPEED, 		15
 .eqv BALL_SPEED_BASE_X,	4
 .eqv BALL_SPEED_BASE_Y,	2
 .eqv BALL_SPEED_X, 		3
@@ -51,7 +51,7 @@
 # Boundaries
 .eqv TOP_BOUND, 		0
 .eqv BOTTOM_BOUND, 		452
-.eqv BOTTOM_BOUND_BALL, 	510
+.eqv BOTTOM_BOUND_BALL, 	500
 .eqv LEFT_BOUND, 		0
 .eqv RIGHT_BOUND, 		512
 
@@ -88,9 +88,6 @@ ball_dy: .word BALL_SPEED_Y
 main:
 	# Initialization
 	# --------------
-	
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
 
 	jal init_video
 	jal clear_screen
@@ -115,10 +112,10 @@ main:
 	jal new_ball
 	
 	jal game_loop
-
-	lw $ra, 0($sp)
-	addi $sp, $sp, 4
-	jr $ra
+	
+	end_game:
+		li $v0, 10
+		syscall
 	
 	# Game Loop
 	# ---------
@@ -153,13 +150,15 @@ handle_keys:
 	beq $t0, $t1, right_up
 	li $t1, 'l'
 	beq $t0, $t1, right_down
+	li $t1, 'q'
+	beq $t0, $t1, end_game
 	j game_loop
 
 
 
-# ---------------
-# Paddle Routines
-# ---------------
+# ----------------
+# Paddle Functions
+# ----------------
 
 left_up:
 	# Erase old paddle
@@ -299,9 +298,9 @@ store_right_y_down:
 
 
 
-# -------------
-# Ball Routines
-# -------------
+# --------------
+# Ball Functions
+# --------------
 
 new_ball:
 	# Random x velocity
@@ -490,9 +489,9 @@ draw_ball:
 
 
 
-# --------------
-# Other Routines
-# --------------
+# ---------------
+# Other Functions
+# ---------------
 
 init_video:
 	la $s0, frame_buffer
@@ -513,7 +512,7 @@ clearEnd:
 	jr $ra
 
 draw_rect:
-	addiu $sp, $sp, -4
+	addi $sp, $sp, -4
 	sw $ra, 0($sp)
 	li $t1, 0
 row_loop:
@@ -528,12 +527,12 @@ col_loop:
 	sll $t6, $t6, 2
 	add $t5, $s0, $t6
 	sw $t0, 0($t5)
-	addiu $t3, $t3, 1
+	addi $t3, $t3, 1
 	j col_loop
 next_row:
-	addiu $t1, $t1, 1
+	addi $t1, $t1, 1
 	j row_loop
 draw_rect_done:
 	lw $ra, 0($sp)
-	addiu $sp, $sp, 4
+	addi $sp, $sp, 4
 	jr $ra	
